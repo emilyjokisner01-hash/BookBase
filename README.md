@@ -1,30 +1,63 @@
 # BookBase
 BookBase is a full stack web-application designed to help users to organize and manage their personal library. Features we have worked on in this project are as follows: adding and editing book entries, searching and filtering books, CSV import and export, and ISBN duplicate checking.
 
-# Quickstart/Demo
-
 # Table of Contents
 
 - [Project Title](#project-title)
-- [Quickstart/Demo](#quickstartdemo)
 - [Table of Contents](#table-of-contents)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Development](#development)
-- [Contribute](#contribute)
-- [License](#license)
 
 # Installation
+
+To install BookBase on your computer, you can clone the repository from github. 
+As a contributor, you can copy the https code from the github website and pasting it alongside the following line of code in your computer or IDE terminal. 
+"git clone [Repository Git HTTPS code]". This adds all of the necessary files to your computer or IDE. 
+Then you can use flask commands to run the program in your web browser. Once you ensure that Flask in installed on your computer, you can use "python app.py" and "flask run" to compile and run the project. 
+
 [(Back to top)](#table-of-contents)
 
 # Usage
+Once you have BookBase running locally, you will be able to use the following features: 
+
+Add Books: 
+
+Users can add any new book by entering: 
+* Title 
+* Author
+* Genre
+* Publication Year 
+* Rating
+* ISBN
+
+Search Through Catalog:
+
+Search by Keywords in:
+* Title 
+* Author 
+* Genre 
+
+Filter Through Catalog
+
+Filter the books by:
+* Author
+* Genre
+* Rating
+* Year
+
+CSV Import
+
+Upload a .csv file to add multiple books at once.
+
+CSV Export
+
+Export search/filter results or the entire catalog into a csv that can be opened into Microsoft Excel.
+
 [(Back to top)](#table-of-contents)
 
 # Development
-[(Back to top)](#table-of-contents)
 
-# Contribute
-[(Back to top)](#table-of-contents)
-
-# License
+This project was developed using a Git Hub Repository housing python, HTML, and SQL files. Python served as the connecting langauge between the backend database (SQL) and the front end GUI design (HTML). Filtering and querying was completed using python FLASK connected to the database. 
+This development was completed by Emily Kisner, Sheetal Bullapur Siddesh, and Samyuktha Gandi as part of ESS Development. We hope you enjoy our project!
 [(Back to top)](#table-of-contents)
