@@ -14,7 +14,12 @@ BookBase is a full stack web-application designed to help users to organize and 
 To install BookBase on your computer, you can clone the repository from github. 
 As a contributor, you can copy the https code from the github website and pasting it alongside the following line of code in your computer or IDE terminal. 
 "git clone [Repository Git HTTPS code]". This adds all of the necessary files to your computer or IDE. 
-Then you can use flask commands to run the program in your web browser. Once you ensure that Flask in installed on your computer, you can use "python app.py" and "flask run" to compile and run the project. 
+Then you can use flask commands to run the program in your web browser.
+If not already done, you will need to download and install mysql on your computer. In doing this, you will set up a root password.
+Once you ensure that both mysql and also Flask are installed on your computer, you can use the terminal on your IDE to enter the following commands. 
+First, ensure that you are in the correct folder by typing the bash command "ls" and making sure the necessary files for the project from Github are listed.
+The first command is "mysql -u root -p". This will ask you to enter your root password. The next command is "source database_setup.sql". 
+Then exit mysql using "exit," and use "python app.py" and "flask run" to compile and run the project. Click on the hyperlink to open BookBase.
 
 [(Back to top)](#table-of-contents)
 
