@@ -13,6 +13,10 @@ db_config = {
 }
 
 def get_db_connection():
+    '''
+    Establishes and returns a connection to the MySQL database.
+    Returns None if the connection fails.
+    '''
     try:
         return mysql.connector.connect(**db_config)
     except mysql.connector.Error as e:
@@ -20,6 +24,10 @@ def get_db_connection():
         return None
 # Initialising the Database
 def init_database():
+    '''
+    Initializes the database by creating the books table if one doesn't exist.
+    Returns True if successful, False if the connection to database fails.
+    '''
     conn = get_db_connection()
     if conn is None:
         return False
@@ -47,10 +55,18 @@ def init_database():
 
 @app.route('/')
 def index():
+    '''
+     Serves the main application interface.
+    Returns the HTML template for the BookBase frontend.
+    '''
     return render_template('index.html')
 
 @app.route('/api/books', methods=['GET'])
 def get_books():
+    '''
+    Retrieves all the books from the database.
+    Returns JSON response with book list and count.
+    '''
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -70,6 +86,11 @@ def get_books():
 
 @app.route('/api/books', methods=['POST'])
 def add_book():
+    '''
+    Adds a new book to the database.
+    Validates the required fields (title and author).
+    Returns success message with book ID or error response.
+    '''
     try:
         data = request.get_json()
         
@@ -108,6 +129,10 @@ def add_book():
 
 @app.route('/api/books/<int:book_id>', methods=['DELETE'])
 def delete_book(book_id):
+    '''
+    Deletes a book from the database by ID.
+    Returns success message or error if book not found.
+    '''
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
