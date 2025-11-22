@@ -203,12 +203,25 @@
 
         .search-section {
             display: flex;
-            gap: 1rem;
+            flex-direction: column; /* <-- stacks items vertically */
+            gap: 0.7rem;
             margin-bottom: 1rem;
         }
 
         .search-section input {
-            flex: 1;
+            width: 100%;
+            padding: 0.9rem 1rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .search-section button {
+            width: 150px; /* button size */
+            align-self: center; /* aligns button under the input */
+            padding: 0.7rem 1rem;
+            font-size: 1rem;
+            border-radius: 8px;
         }
 
         .stats {
@@ -251,7 +264,7 @@
     <div class="container">
         <header>
             <h1>📚ESS BookBase📚</h1>
-            <p>Your Own Personal Book Library Catalog </p>
+            <p>A Personal Library Cataloging System</p>
         </header>
 
         <div class="main-content">
