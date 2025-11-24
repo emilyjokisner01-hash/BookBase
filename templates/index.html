@@ -203,7 +203,7 @@
 
         .search-section {
             display: flex;
-            flex-direction: column; /* <-- stacks items vertically */
+            flex-direction: column;
             gap: 0.7rem;
             margin-bottom: 1rem;
         }
@@ -217,8 +217,8 @@
         }
 
         .search-section button {
-            width: 150px; /* button size */
-            align-self: center; /* aligns button under the input */
+            width: 150px;
+            align-self: center;
             padding: 0.7rem 1rem;
             font-size: 1rem;
             border-radius: 8px;
@@ -426,16 +426,22 @@
     <script>
         let allBooks = [];
         let currentFilters = {};
+        let currentlyEditingId = null;
 
         // Load books when page loads
         document.addEventListener('DOMContentLoaded', function() {
             loadBooks();
         });
 
-        // Form submission
+        // Form submission - SINGLE handler for both add and edit
         document.getElementById('addBookForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            addBook();
+            
+            if (currentlyEditingId) {
+                updateBook(currentlyEditingId);
+            } else {
+                addBook();
+            }
         });
 
         // Global search on Enter key
@@ -525,6 +531,8 @@
             const data = Object.fromEntries(formData.entries());
 
             try {
+                console.log('Adding new book - API endpoint: /api/books (POST)');
+                
                 const response = await fetch('/api/books', {
                     method: 'POST',
                     headers: {
@@ -574,6 +582,8 @@
             const book = allBooks.find(b => b.id === bookId);
             if (!book) return;
 
+            currentlyEditingId = bookId;
+
             // Populate form with book data
             document.getElementById('title').value = book.title;
             document.getElementById('author').value = book.author;
@@ -583,13 +593,36 @@
             document.getElementById('genre').value = book.genre || '';
             document.getElementById('rating').value = book.rating || '';
 
-            // Change form to update mode
+            // button to indicate the edit mode
+            const submitButton = document.querySelector('#addBookForm button[type="submit"]');
+            submitButton.textContent = 'Update Book';
+            
+            // Adding cancel button during edit option
+            if (!document.getElementById('cancelEditBtn')) {
+                const cancelButton = document.createElement('button');
+                cancelButton.type = 'button';
+                cancelButton.id = 'cancelEditBtn';
+                cancelButton.textContent = 'Cancel Edit';
+                cancelButton.className = 'btn-danger';
+                cancelButton.style.marginTop = '10px';
+                cancelButton.onclick = cancelEdit;
+                document.getElementById('addBookForm').appendChild(cancelButton);
+            }
+        }
+
+        function cancelEdit() {
+            currentlyEditingId = null;
             const form = document.getElementById('addBookForm');
-            form.onsubmit = function(e) {
-                e.preventDefault();
-                updateBook(bookId);
-            };
-            form.querySelector('button[type="submit"]').textContent = 'Update Book';
+            form.reset();
+            
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.textContent = 'Add Book';
+            
+            // Remove cancel button
+            const cancelButton = document.getElementById('cancelEditBtn');
+            if (cancelButton) {
+                cancelButton.remove();
+            }
         }
 
         async function updateBook(bookId) {
@@ -598,6 +631,8 @@
             const data = Object.fromEntries(formData.entries());
 
             try {
+                console.log('Updating book - API endpoint: /api/books/' + bookId + ' (PUT)');
+                
                 const response = await fetch(`/api/books/${bookId}`, {
                     method: 'PUT',
                     headers: {
@@ -610,12 +645,7 @@
 
                 if (result.success) {
                     showAlert('Book updated successfully!');
-                    form.reset();
-                    form.onsubmit = function(e) {
-                        e.preventDefault();
-                        addBook();
-                    };
-                    form.querySelector('button[type="submit"]').textContent = 'Add Book';
+                    cancelEdit(); // Resetting the form and clear edit mode
                     loadBooks(currentFilters);
                 } else {
                     showAlert('Error updating book: ' + (result.error || result.errors?.join(', ')), 'error');
