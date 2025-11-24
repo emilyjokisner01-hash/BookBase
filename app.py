@@ -72,30 +72,59 @@ def validate_book_data(data):
         errors.append("Author is required")
     
     isbn = data.get('isbn', '')
-    if isbn and not re.match(r'^\d{10}(\d{3})?$', isbn.replace('-', '')):
-        errors.append("Invalid ISBN format. Must be 10 or 13 digits")
+    if isbn:
+        # Clean the ISBN for validation
+        clean_isbn = isbn.replace(' ', '').replace('-', '').replace('*', '')
+        if not re.match(r'^\d{10}(\d{3})?$', clean_isbn):
+            errors.append("Invalid ISBN format. Must be 10 or 13 digits")
     
     year = data.get('year')
-    if year and (not year.isdigit() or int(year) < 1000 or int(year) > 2030):
-        errors.append("Invalid publication year")
+    if year:
+        # Handle both string and integer year values
+        year_str = str(year)
+        if not year_str.isdigit() or int(year) < 1000 or int(year) > 2030:
+            errors.append("Invalid publication year")
     
     rating = data.get('rating')
-    if rating and (not rating.isdigit() or int(rating) < 1 or int(rating) > 5):
-        errors.append("Rating must be between 1 and 5 stars")
+    if rating:
+        # Handle both string and integer rating values
+        rating_str = str(rating)
+        if not rating_str.isdigit() or int(rating) < 1 or int(rating) > 5:
+            errors.append("Rating must be between 1 and 5 stars")
     
     return errors
 
-def is_duplicate_isbn(isbn):
+def is_duplicate_isbn(isbn, exclude_book_id=None):
     """
     Checks if a book with the given ISBN already exists in the database.
+    exclude_book_id: When editing, exclude this book from the duplicate check
     Returns the existing book data if duplicate found, otherwise False.
     """
     if not isbn:
         return False
     
+    # Clean the ISBN for comparison to avoid getting duplicate isbn issue - removing spaces, dashes
+    clean_isbn = isbn.strip().replace(' ', '').replace('-', '').replace('*', '')
+    
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, title, author FROM books WHERE isbn = %s", (isbn,))
+    
+    if exclude_book_id:
+        # Fix for update issue during edit option
+        # When editing, exclude the current book from duplicate check
+        # Also clean the ISBN in the database for comparison
+        cursor.execute('''
+            SELECT id, title, author FROM books 
+            WHERE REPLACE(REPLACE(REPLACE(isbn, ' ', ''), '-', ''), '*', '') = %s 
+            AND id != %s
+        ''', (clean_isbn, exclude_book_id))
+    else:
+        # When adding new book, check against all books
+        cursor.execute('''
+            SELECT id, title, author FROM books 
+            WHERE REPLACE(REPLACE(REPLACE(isbn, ' ', ''), '-', ''), '*', '') = %s
+        ''', (clean_isbn,))
+    
     existing_book = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -206,7 +235,7 @@ def add_book():
         
         # Check for duplicate ISBN to maintain data integrity
         if data.get('isbn'):
-            duplicate = is_duplicate_isbn(data['isbn'])
+            duplicate = is_duplicate_isbn(data['isbn'])  
             if duplicate:
                 return jsonify({
                     'success': False, 
@@ -216,13 +245,16 @@ def add_book():
         conn = get_db_connection()
         cursor = conn.cursor()
         
+        # Clean the ISBN before storing 
+        clean_isbn = data.get('isbn', '').strip().replace(' ', '').replace('-', '').replace('*', '')
+        
         cursor.execute('''
             INSERT INTO books (title, author, isbn, publisher, year, genre, rating)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         ''', (
             data['title'].strip(),
             data['author'].strip(),
-            data.get('isbn', '').strip(),
+            clean_isbn,  # Use cleaned ISBN to avoid duplicate isbn issue
             data.get('publisher', '').strip(),
             data.get('year'),
             data.get('genre', '').strip(),
@@ -258,8 +290,21 @@ def update_book(book_id):
         if errors:
             return jsonify({'success': False, 'errors': errors}), 400
         
+        # Fix for update issue during edit option
+        # Check for duplicate ISBN, but EXCLUDE the current book being edited
+        if data.get('isbn'):
+            duplicate = is_duplicate_isbn(data['isbn'], exclude_book_id=book_id)
+            if duplicate:
+                return jsonify({
+                    'success': False, 
+                    'error': f'Duplicate ISBN: Book "{duplicate[1]}" by {duplicate[2]} already exists with this ISBN'
+                }), 400
+        
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Clean the ISBN before storing (remove spaces, dashes, asterisks)
+        clean_isbn = data.get('isbn', '').strip().replace(' ', '').replace('-', '').replace('*', '')
         
         cursor.execute('''
             UPDATE books 
@@ -268,7 +313,7 @@ def update_book(book_id):
         ''', (
             data['title'].strip(),
             data['author'].strip(),
-            data.get('isbn', '').strip(),
+            clean_isbn,  # Use cleaned ISBN
             data.get('publisher', '').strip(),
             data.get('year'),
             data.get('genre', '').strip(),
@@ -287,7 +332,7 @@ def update_book(book_id):
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-
+        
 @app.route('/api/books/<int:book_id>', methods=['DELETE'])
 def delete_book(book_id):
     """
