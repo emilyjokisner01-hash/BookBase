@@ -379,7 +379,7 @@ def import_csv():
         stream = io.StringIO(file.stream.read().decode("utf-8-sig"), newline=None)
         csv_reader = csv.DictReader(stream)
 
-        
+
         required_fields = ['title', 'author']
         imported_books = []
         errors = []
